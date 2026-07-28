@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulasi & Pengajuan Fee Sales</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy-900:#14213D;
+    --navy-800:#1B2A4A;
+    --navy-700:#233657;
+    --gold-500:#B8862E;
+    --gold-600:#9A6E22;
+    --gold-100:#F3E6CC;
+    --bg:#F6F5F0;
+    --card:#FFFFFF;
+    --border:#E2DFD4;
+    --border-strong:#CFCBBC;
+    --text-primary:#1B1A17;
+    --text-secondary:#6E6C62;
+    --text-muted:#9C9A8E;
+    --success:#2E7D4F;
+    --success-bg:#E7F3EC;
+    --danger:#B3261E;
+    --danger-bg:#FBEAE9;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;}
+  #app{
+    font-family:'Inter',system-ui,sans-serif;
+    background:var(--bg);
+    color:var(--text-primary);
+    min-height:100vh;
+    padding:0;
+  }
+  .wrap{max-width:960px;margin:0 auto;padding:28px 20px 60px;}
+  h1,h2,h3{font-family:'Space Grotesk',system-ui,sans-serif;font-weight:600;margin:0;}
+  .header{margin-bottom:24px;}
+  .header .eyebrow{
+    font-size:12px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--gold-600);font-weight:600;margin-bottom:6px;
+  }
+  .header h1{font-size:26px;color:var(--navy-900);}
+  .header p{font-size:14px;color:var(--text-secondary);margin:6px 0 0;max-width:560px;line-height:1.5;}
+
+  .quota-grid{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+    gap:14px;margin-bottom:28px;
+  }
+  .quota-card{
+    background:var(--card);border:1px solid var(--border);border-radius:12px;
+    padding:16px 18px;
+  }
+  .quota-card .qname{font-size:13px;font-weight:600;color:var(--navy-900);margin-bottom:10px;}
+  .quota-card .qrow{display:flex;justify-content:space-between;font-size:12px;color:var(--text-secondary);margin-bottom:3px;}
+  .quota-card .qrow b{color:var(--text-primary);font-weight:600;}
+  .quota-bar{height:6px;border-radius:4px;background:var(--border);overflow:hidden;margin:8px 0 6px;}
+  .quota-bar-fill{height:100%;background:var(--gold-500);border-radius:4px;transition:width .3s ease;}
+  .quota-bar-fill.warn{background:var(--danger);}
+  .quota-sisa{font-size:13px;font-weight:600;color:var(--navy-900);}
+
+  .tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:24px;}
+  .tab-btn{
+    appearance:none;border:none;background:none;padding:10px 16px;font-size:14px;
+    font-weight:500;color:var(--text-secondary);cursor:pointer;border-bottom:2px solid transparent;
+    font-family:'Inter',sans-serif;
+  }
+  .tab-btn.active{color:var(--navy-900);border-bottom-color:var(--gold-500);font-weight:600;}
+  .tab-btn:hover{color:var(--navy-900);}
+
+  .panel{display:none;}
+  .panel.active{display:block;}
+
+  .card{
+    background:var(--card);border:1px solid var(--border);border-radius:12px;
+    padding:22px;margin-bottom:20px;
+  }
+  .card h2{font-size:16px;color:var(--navy-900);margin-bottom:16px;}
+
+  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+  .field{display:flex;flex-direction:column;gap:6px;}
+  .field.full{grid-column:1/-1;}
+  label{font-size:12px;font-weight:600;color:var(--text-secondary);}
+  input[type=text],input[type=number],select{
+    height:38px;border:1px solid var(--border-strong);border-radius:8px;
+    padding:0 12px;font-size:14px;font-family:'Inter',sans-serif;
+    background:#fff;color:var(--text-primary);
+  }
+  input:focus,select:focus{outline:2px solid var(--gold-500);outline-offset:1px;border-color:var(--gold-500);}
+  .hint{font-size:11px;color:var(--text-muted);}
+
+  .btn{
+    height:40px;padding:0 20px;border-radius:8px;border:1px solid var(--navy-900);
+    background:var(--navy-900);color:#fff;font-size:14px;font-weight:600;cursor:pointer;
+    font-family:'Inter',sans-serif;
+  }
+  .btn:hover{background:var(--navy-700);}
+  .btn.secondary{background:#fff;color:var(--navy-900);}
+  .btn.secondary:hover{background:var(--bg);}
+  .btn.danger-outline{background:#fff;color:var(--danger);border-color:var(--danger);height:30px;padding:0 12px;font-size:12px;}
+  .btn.danger-outline:hover{background:var(--danger-bg);}
+  .btn:disabled{opacity:.5;cursor:not-allowed;}
+
+  .result-box{
+    margin-top:18px;padding:18px;border-radius:10px;background:var(--navy-900);color:#fff;
+  }
+  .result-box .r-fee-label{font-size:12px;color:#C9CFDC;text-transform:uppercase;letter-spacing:.06em;font-weight:600;}
+  .result-box .r-fee-val{font-family:'Space Grotesk',sans-serif;font-size:30px;font-weight:600;color:var(--gold-100);margin:4px 0 12px;}
+  .result-box .r-meta{display:flex;flex-wrap:wrap;gap:18px;font-size:13px;color:#D8DCE6;margin-bottom:6px;}
+  .result-box .r-meta b{color:#fff;}
+  .result-box .r-note{font-size:12px;color:#C9CFDC;background:rgba(255,255,255,.08);padding:8px 10px;border-radius:6px;margin-top:8px;}
+  .result-box .r-actions{margin-top:16px;display:flex;gap:10px;align-items:center;}
+
+  .alert{padding:10px 14px;border-radius:8px;font-size:13px;margin-top:12px;}
+  .alert.error{background:var(--danger-bg);color:var(--danger);}
+  .alert.success{background:var(--success-bg);color:var(--success);}
+
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--border);}
+  th{color:var(--text-secondary);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.03em;}
+  td.num{text-align:right;font-variant-numeric:tabular-nums;}
+  tr:last-child td{border-bottom:none;}
+  .empty-state{padding:32px 10px;text-align:center;color:var(--text-secondary);font-size:13px;}
+  .badge{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;background:var(--gold-100);color:var(--gold-600);}
+  .loading{padding:20px;text-align:center;color:var(--text-secondary);font-size:13px;}
+
+  .summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px;}
+  .summary-metric{background:var(--bg);border-radius:8px;padding:12px 14px;}
+  .summary-metric .m-label{font-size:12px;color:var(--text-secondary);margin-bottom:4px;}
+  .summary-metric .m-val{font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:600;color:var(--navy-900);}
+  .filter-toolbar{
+    display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-bottom:16px;
+    padding-bottom:16px;border-bottom:1px solid var(--border);
+  }
+  .filter-field{display:flex;flex-direction:column;gap:4px;}
+  .filter-field label{font-size:11px;color:var(--text-secondary);font-weight:600;}
+  .filter-field input,.filter-field select{
+    height:34px;border:1px solid var(--border-strong);border-radius:8px;padding:0 10px;
+    font-size:13px;font-family:'Inter',sans-serif;background:#fff;color:var(--text-primary);
+  }
+  .filter-actions{display:flex;gap:8px;margin-left:auto;}
+  .btn.small{height:34px;padding:0 14px;font-size:13px;}
+  .result-count{font-size:12px;color:var(--text-secondary);margin-bottom:10px;}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="wrap">
+    <div class="header">
+      <div class="eyebrow">Fee booster developer</div>
+      <h1>Simulasi & pengajuan fee sales</h1>
+      <p>Hitung estimasi fee insentif berdasarkan plafond dan group developer, lalu simpan sebagai pengajuan resmi dengan nomor LD. Data pengajuan dan sisa kuota dibagikan ke seluruh pengguna aplikasi ini.</p>
+    </div>
+
+    <div class="quota-grid" id="quotaGrid"></div>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="sim">Simulasi fee</button>
+      <button class="tab-btn" data-tab="input">Penginputan aplikasi</button>
+    </div>
+
+    <div class="panel active" id="panel-sim">
+      <div class="card">
+        <h2>Simulasi fee</h2>
+        <div class="field-row">
+          <div class="field full">
+            <label for="sim-nasabah">Nama nasabah</label>
+            <input type="text" id="sim-nasabah" placeholder="Nama lengkap nasabah">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="sim-plafond">Plafond</label>
+            <input type="text" id="sim-plafond" inputmode="numeric" placeholder="Contoh: 2.000.000.000">
+            <span class="hint">Minimum plafond Rp1.000.000.000</span>
+          </div>
+          <div class="field">
+            <label for="sim-group">Group developer</label>
+            <select id="sim-group">
+              <option value="">Pilih group developer</option>
+              <option value="Jaya">Jaya</option>
+              <option value="Ciputra">Ciputra</option>
+              <option value="Sinarmasland dan Summarecon">Sinarmasland dan Summarecon</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn" id="btnHitung">Hitung fee</button>
+        <div id="simResultWrap"></div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-input">
+      <div class="card">
+        <h2>Input pengajuan baru</h2>
+        <div class="field-row">
+          <div class="field">
+            <label for="app-ld">Nomor LD</label>
+            <input type="text" id="app-ld" placeholder="Nomor LD (unik)">
+          </div>
+          <div class="field">
+            <label for="app-nasabah">Nama nasabah</label>
+            <input type="text" id="app-nasabah" placeholder="Nama lengkap nasabah">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="app-plafond">Plafond</label>
+            <input type="text" id="app-plafond" inputmode="numeric" placeholder="Contoh: 2.000.000.000">
+          </div>
+          <div class="field">
+            <label for="app-group">Group developer</label>
+            <select id="app-group">
+              <option value="">Pilih group developer</option>
+              <option value="Jaya">Jaya</option>
+              <option value="Ciputra">Ciputra</option>
+              <option value="Sinarmasland dan Summarecon">Sinarmasland dan Summarecon</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn" id="btnSimpanInput">Simpan pengajuan</button>
+        <div id="inputAlertWrap"></div>
+      </div>
+
+      <div class="card">
+        <h2>Ringkasan laporan</h2>
+        <div class="summary-grid" id="summaryGrid"></div>
+      </div>
+
+      <div class="card">
+        <h2>Daftar pengajuan</h2>
+        <div class="filter-toolbar">
+          <div class="filter-field">
+            <label for="f-group">Group developer</label>
+            <select id="f-group">
+              <option value="">Semua group</option>
+              <option value="Jaya">Jaya</option>
+              <option value="Ciputra">Ciputra</option>
+              <option value="Sinarmasland dan Summarecon">Sinarmasland dan Summarecon</option>
+            </select>
+          </div>
+          <div class="filter-field">
+            <label for="f-from">Dari tanggal</label>
+            <input type="date" id="f-from">
+          </div>
+          <div class="filter-field">
+            <label for="f-to">Sampai tanggal</label>
+            <input type="date" id="f-to">
+          </div>
+          <div class="filter-field">
+            <label for="f-search">Cari nasabah / LD</label>
+            <input type="text" id="f-search" placeholder="Ketik untuk mencari">
+          </div>
+          <div class="filter-actions">
+            <button class="btn secondary small" id="btnResetFilter">Reset filter</button>
+            <button class="btn small" id="btnExportCsv">Unduh CSV</button>
+          </div>
+        </div>
+        <div id="tableWrap"><div class="loading">Memuat data...</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var TIER_CONFIG = {
+    "Jaya": { kuota: 250000000 },
+    "Ciputra": { kuota: 250000000 },
+    "Sinarmasland dan Summarecon": { kuota: 250000000 }
+  };
+
+  function calcTier(group, plafond){
+    if(!plafond || plafond <= 1000000000) return null;
+    if(group === "Jaya" || group === "Ciputra"){
+      if(plafond > 1000000000 && plafond <= 2500000000) return {pct:0.005, maxFee:8000000};
+      if(plafond >= 2500000000) return {pct:0.005, maxFee:15000000};
+    } else if(group === "Sinarmasland dan Summarecon"){
+      if(plafond > 1000000000 && plafond <= 2500000000) return {pct:0.005, maxFee:10000000};
+      if(plafond > 2500000000 && plafond < 5000000000) return {pct:0.005, maxFee:20000000};
+      if(plafond >= 5000000000) return {pct:0.01, maxFee:35000000};
+    }
+    return null;
+  }
+
+  function calcFee(group, plafond){
+    var tier = calcTier(group, plafond);
+    if(!tier) return null;
+    var rawFee = plafond * tier.pct;
+    var fee = Math.min(rawFee, tier.maxFee);
+    return { pct: tier.pct, maxFee: tier.maxFee, rawFee: rawFee, fee: fee, capped: rawFee > tier.maxFee };
+  }
+
+  function formatRupiah(n){
+    n = Math.round(n || 0);
+    return "Rp " + n.toLocaleString('id-ID');
+  }
+  function formatPct(p){
+    return (p*100).toFixed(2).replace(/\.00$/,'') + "%";
+  }
+  function parseNumInput(str){
+    if(!str) return 0;
+    var digits = str.replace(/[^0-9]/g, '');
+    return digits ? parseInt(digits, 10) : 0;
+  }
+  function formatInputDisplay(num){
+    if(!num) return '';
+    return num.toLocaleString('id-ID');
+  }
+  function attachThousandFormatting(inputEl){
+    inputEl.addEventListener('input', function(){
+      var num = parseNumInput(inputEl.value);
+      inputEl.value = formatInputDisplay(num);
+    });
+  }
+
+  var apps = [];
+  var dataLoaded = false;
+  var filters = { group: '', from: '', to: '', search: '' };
+
+  function usedByGroup(group){
+    return apps.filter(function(a){ return a.group === group; })
+                .reduce(function(sum, a){ return sum + a.fee; }, 0);
+  }
+
+  function renderQuota(){
+    var grid = document.getElementById('quotaGrid');
+    var groups = Object.keys(TIER_CONFIG);
+    grid.innerHTML = groups.map(function(g){
+      var used = usedByGroup(g);
+      var total = TIER_CONFIG[g].kuota;
+      var sisa = total - used;
+      var pctUsed = Math.min(100, (used/total)*100);
+      var warn = sisa <= total * 0.15;
+      return '<div class="quota-card">' +
+        '<div class="qname">' + g + '</div>' +
+        '<div class="qrow"><span>Total kuota</span><b>' + formatRupiah(total) + '</b></div>' +
+        '<div class="qrow"><span>Terpakai</span><b>' + formatRupiah(used) + '</b></div>' +
+        '<div class="quota-bar"><div class="quota-bar-fill' + (warn ? ' warn' : '') + '" style="width:' + pctUsed.toFixed(1) + '%"></div></div>' +
+        '<div class="quota-sisa">Sisa: ' + formatRupiah(sisa) + '</div>' +
+        '</div>';
+    }).join('');
+  }
+
+  function getFilteredApps(){
+    var fromTs = filters.from ? new Date(filters.from + 'T00:00:00').getTime() : -Infinity;
+    var toTs = filters.to ? new Date(filters.to + 'T23:59:59').getTime() : Infinity;
+    var search = filters.search.trim().toLowerCase();
+    return apps.filter(function(a){
+      if(filters.group && a.group !== filters.group) return false;
+      if(a.timestamp < fromTs || a.timestamp > toTs) return false;
+      if(search && a.nasabah.toLowerCase().indexOf(search) === -1 && a.ld.toLowerCase().indexOf(search) === -1) return false;
+      return true;
+    });
+  }
+
+  function renderSummary(){
+    var grid = document.getElementById('summaryGrid');
+    var filtered = dataLoaded ? getFilteredApps() : [];
+    var totalFee = filtered.reduce(function(s,a){ return s + a.fee; }, 0);
+    var perGroup = Object.keys(TIER_CONFIG).map(function(g){
+      var list = filtered.filter(function(a){ return a.group === g; });
+      var fee = list.reduce(function(s,a){ return s + a.fee; }, 0);
+      return '<div class="summary-metric"><div class="m-label">' + g + '</div><div class="m-val" style="font-size:15px">' + list.length + ' pengajuan · ' + formatRupiah(fee) + '</div></div>';
+    }).join('');
+    grid.innerHTML =
+      '<div class="summary-metric"><div class="m-label">Total pengajuan (sesuai filter)</div><div class="m-val">' + filtered.length + '</div></div>' +
+      '<div class="summary-metric"><div class="m-label">Total fee dibayarkan</div><div class="m-val">' + formatRupiah(totalFee) + '</div></div>' +
+      perGroup;
+  }
+
+  function csvEscape(val){
+    var s = String(val === undefined || val === null ? '' : val);
+    return '"' + s.replace(/"/g, '""') + '"';
+  }
+
+  function exportCsv(){
+    var filtered = getFilteredApps().slice().sort(function(a,b){ return b.timestamp - a.timestamp; });
+    var header = ['Nomor LD','Nama Nasabah','Group Developer','Plafond','Persentase','Fee','Tanggal'];
+    var lines = [header.map(csvEscape).join(',')];
+    filtered.forEach(function(a){
+      lines.push([
+        csvEscape(a.ld),
+        csvEscape(a.nasabah),
+        csvEscape(a.group),
+        csvEscape(a.plafond),
+        csvEscape(formatPct(a.pct)),
+        csvEscape(a.fee),
+        csvEscape(a.tanggal)
+      ].join(','));
+    });
+    var csvContent = '\uFEFF' + lines.join('\r\n');
+    var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    var stamp = new Date().toISOString().slice(0,10);
+    a.href = url;
+    a.download = 'laporan-fee-sales-' + stamp + '.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function renderTable(){
+    var wrap = document.getElementById('tableWrap');
+    if(!dataLoaded){
+      wrap.innerHTML = '<div class="loading">Memuat data...</div>';
+      return;
+    }
+    var filtered = getFilteredApps();
+    if(apps.length === 0){
+      wrap.innerHTML = '<div class="empty-state">Belum ada pengajuan. Data pengajuan yang tersimpan akan muncul di sini.</div>';
+      return;
+    }
+    if(filtered.length === 0){
+      wrap.innerHTML = '<div class="empty-state">Tidak ada pengajuan yang cocok dengan filter saat ini.</div>';
+      return;
+    }
+    var sorted = filtered.slice().sort(function(a,b){ return b.timestamp - a.timestamp; });
+    var rows = sorted.map(function(a){
+      return '<tr>' +
+        '<td>' + a.ld + '</td>' +
+        '<td>' + a.nasabah + '</td>' +
+        '<td>' + a.group + '</td>' +
+        '<td class="num">' + formatRupiah(a.plafond) + '</td>' +
+        '<td class="num">' + formatPct(a.pct) + (a.capped ? ' <span class="badge">maks</span>' : '') + '</td>' +
+        '<td class="num">' + formatRupiah(a.fee) + '</td>' +
+        '<td>' + a.tanggal + '</td>' +
+        '<td><button class="btn danger-outline" data-ld="' + a.ld + '">Hapus</button></td>' +
+        '</tr>';
+    }).join('');
+    wrap.innerHTML =
+      '<div class="result-count">Menampilkan ' + filtered.length + ' dari ' + apps.length + ' pengajuan</div>' +
+      '<table><thead><tr>' +
+      '<th>No. LD</th><th>Nasabah</th><th>Group</th><th>Plafond</th><th>Tier</th><th>Fee</th><th>Tanggal</th><th></th>' +
+      '</tr></thead><tbody>' + rows + '</tbody></table>';
+
+    wrap.querySelectorAll('button[data-ld]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var ld = btn.getAttribute('data-ld');
+        if(confirm('Hapus pengajuan dengan nomor LD ' + ld + '? Tindakan ini akan mengembalikan sisa kuota.')){
+          deleteApp(ld);
+        }
+      });
+    });
+  }
+
+  async function loadData(){
+    try{
+      var res = await window.storage.get('fee_applications', true);
+      apps = res && res.value ? JSON.parse(res.value) : [];
+    }catch(e){
+      apps = [];
+    }
+    dataLoaded = true;
+    renderQuota();
+    renderSummary();
+    renderTable();
+  }
+
+  async function persistApps(){
+    try{
+      await window.storage.set('fee_applications', JSON.stringify(apps), true);
+      return true;
+    }catch(e){
+      return false;
+    }
+  }
+
+  async function deleteApp(ld){
+    var prev = apps.slice();
+    apps = apps.filter(function(a){ return a.ld !== ld; });
+    var ok = await persistApps();
+    if(!ok){ apps = prev; alert('Gagal menghapus data. Coba lagi.'); }
+    renderQuota();
+    renderSummary();
+    renderTable();
+  }
+
+  function isLdUnique(ld){
+    return !apps.some(function(a){ return a.ld.toLowerCase() === ld.toLowerCase(); });
+  }
+
+  async function addApplication(entry, alertWrapEl){
+    if(!isLdUnique(entry.ld)){
+      alertWrapEl.innerHTML = '<div class="alert error">Nomor LD "' + entry.ld + '" sudah terpakai. Gunakan nomor LD lain.</div>';
+      return false;
+    }
+    var sisa = TIER_CONFIG[entry.group].kuota - usedByGroup(entry.group);
+    if(entry.fee > sisa){
+      alertWrapEl.innerHTML = '<div class="alert error">Sisa kuota group ' + entry.group + ' tidak mencukupi. Sisa kuota: ' + formatRupiah(sisa) + ', fee yang diajukan: ' + formatRupiah(entry.fee) + '.</div>';
+      return false;
+    }
+    apps.push(entry);
+    var ok = await persistApps();
+    if(!ok){
+      apps = apps.filter(function(a){ return a.ld !== entry.ld; });
+      alertWrapEl.innerHTML = '<div class="alert error">Gagal menyimpan data. Coba lagi.</div>';
+      return false;
+    }
+    renderQuota();
+    renderSummary();
+    renderTable();
+    return true;
+  }
+
+  document.querySelectorAll('.tab-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
+      document.querySelectorAll('.panel').forEach(function(p){ p.classList.remove('active'); });
+      btn.classList.add('active');
+      document.getElementById('panel-' + btn.getAttribute('data-tab')).classList.add('active');
+    });
+  });
+
+  attachThousandFormatting(document.getElementById('sim-plafond'));
+  attachThousandFormatting(document.getElementById('app-plafond'));
+
+  document.getElementById('btnHitung').addEventListener('click', function(){
+    var nasabah = document.getElementById('sim-nasabah').value.trim();
+    var plafond = parseNumInput(document.getElementById('sim-plafond').value);
+    var group = document.getElementById('sim-group').value;
+    var resultWrap = document.getElementById('simResultWrap');
+
+    if(!nasabah || !plafond || !group){
+      resultWrap.innerHTML = '<div class="alert error">Lengkapi nama nasabah, plafond, dan group developer terlebih dahulu.</div>';
+      return;
+    }
+    var calc = calcFee(group, plafond);
+    if(!calc){
+      resultWrap.innerHTML = '<div class="alert error">Plafond minimum untuk mendapatkan fee booster adalah Rp1.000.000.001.</div>';
+      return;
+    }
+    var sisaSaatIni = TIER_CONFIG[group].kuota - usedByGroup(group);
+    var sisaSetelah = sisaSaatIni - calc.fee;
+    var cukup = calc.fee <= sisaSaatIni;
+
+    var html = '<div class="result-box">' +
+      '<div class="r-fee-label">Estimasi fee</div>' +
+      '<div class="r-fee-val">' + formatRupiah(calc.fee) + '</div>' +
+      '<div class="r-meta">' +
+        '<span>Tier: <b>' + formatPct(calc.pct) + '</b></span>' +
+        '<span>Plafond: <b>' + formatRupiah(plafond) + '</b></span>' +
+        '<span>Sisa kuota saat ini: <b>' + formatRupiah(sisaSaatIni) + '</b></span>' +
+        '<span>Sisa kuota setelah pengajuan: <b>' + formatRupiah(Math.max(sisaSetelah,0)) + '</b></span>' +
+      '</div>' +
+      (calc.capped ? '<div class="r-note">Fee dibatasi oleh maksimal insentif tier ini (perhitungan murni: ' + formatRupiah(calc.rawFee) + ').</div>' : '') +
+      (!cukup ? '<div class="r-note">Sisa kuota group ini tidak cukup untuk menampung fee hasil simulasi.</div>' : '') +
+      '<div class="r-actions" id="simActions"></div>' +
+      '</div>';
+    resultWrap.innerHTML = html;
+
+    var actions = document.getElementById('simActions');
+    if(cukup){
+      actions.innerHTML = '<button class="btn secondary" id="btnLanjutInput">Lanjutkan ke pengajuan</button>';
+      document.getElementById('btnLanjutInput').addEventListener('click', function(){
+        actions.innerHTML =
+          '<input type="text" id="simLd" placeholder="Nomor LD" style="height:36px;border-radius:8px;border:1px solid var(--border-strong);padding:0 10px;font-size:13px;">' +
+          '<button class="btn" id="btnSimpanSim">Simpan pengajuan</button>';
+        document.getElementById('btnSimpanSim').addEventListener('click', async function(){
+          var ld = document.getElementById('simLd').value.trim();
+          if(!ld){
+            resultWrap.insertAdjacentHTML('beforeend', '<div class="alert error">Nomor LD wajib diisi.</div>');
+            return;
+          }
+          var entry = {
+            ld: ld, nasabah: nasabah, plafond: plafond, group: group,
+            pct: calc.pct, fee: calc.fee, capped: calc.capped,
+            tanggal: new Date().toLocaleDateString('id-ID'),
+            timestamp: Date.now()
+          };
+          var ok = await addApplication(entry, resultWrap);
+          if(ok){
+            resultWrap.innerHTML = '<div class="alert success">Pengajuan tersimpan dengan nomor LD ' + ld + '. Lihat tab Penginputan aplikasi untuk detail lengkap.</div>';
+            document.getElementById('sim-nasabah').value = '';
+            document.getElementById('sim-plafond').value = '';
+            document.getElementById('sim-group').value = '';
+          }
+        });
+      });
+    }
+  });
+
+  document.getElementById('btnSimpanInput').addEventListener('click', async function(){
+    var ld = document.getElementById('app-ld').value.trim();
+    var nasabah = document.getElementById('app-nasabah').value.trim();
+    var plafond = parseNumInput(document.getElementById('app-plafond').value);
+    var group = document.getElementById('app-group').value;
+    var alertWrap = document.getElementById('inputAlertWrap');
+
+    if(!ld || !nasabah || !plafond || !group){
+      alertWrap.innerHTML = '<div class="alert error">Lengkapi semua data: nomor LD, nama nasabah, plafond, dan group developer.</div>';
+      return;
+    }
+    var calc = calcFee(group, plafond);
+    if(!calc){
+      alertWrap.innerHTML = '<div class="alert error">Plafond minimum untuk mendapatkan fee booster adalah Rp1.000.000.001.</div>';
+      return;
+    }
+    var entry = {
+      ld: ld, nasabah: nasabah, plafond: plafond, group: group,
+      pct: calc.pct, fee: calc.fee, capped: calc.capped,
+      tanggal: new Date().toLocaleDateString('id-ID'),
+      timestamp: Date.now()
+    };
+    var ok = await addApplication(entry, alertWrap);
+    if(ok){
+      alertWrap.innerHTML = '<div class="alert success">Pengajuan dengan nomor LD ' + ld + ' berhasil disimpan. Fee: ' + formatRupiah(calc.fee) + '.</div>';
+      document.getElementById('app-ld').value = '';
+      document.getElementById('app-nasabah').value = '';
+      document.getElementById('app-plafond').value = '';
+      document.getElementById('app-group').value = '';
+    }
+  });
+
+  document.getElementById('f-group').addEventListener('change', function(e){
+    filters.group = e.target.value;
+    renderSummary();
+    renderTable();
+  });
+  document.getElementById('f-from').addEventListener('change', function(e){
+    filters.from = e.target.value;
+    renderSummary();
+    renderTable();
+  });
+  document.getElementById('f-to').addEventListener('change', function(e){
+    filters.to = e.target.value;
+    renderSummary();
+    renderTable();
+  });
+  document.getElementById('f-search').addEventListener('input', function(e){
+    filters.search = e.target.value;
+    renderSummary();
+    renderTable();
+  });
+  document.getElementById('btnResetFilter').addEventListener('click', function(){
+    filters = { group: '', from: '', to: '', search: '' };
+    document.getElementById('f-group').value = '';
+    document.getElementById('f-from').value = '';
+    document.getElementById('f-to').value = '';
+    document.getElementById('f-search').value = '';
+    renderSummary();
+    renderTable();
+  });
+  document.getElementById('btnExportCsv').addEventListener('click', function(){
+    if(getFilteredApps().length === 0){
+      alert('Tidak ada data untuk diunduh sesuai filter saat ini.');
+      return;
+    }
+    exportCsv();
+  });
+
+  renderQuota();
+  renderSummary();
+  loadData();
+})();
+</script>
+</body>
+</html>
